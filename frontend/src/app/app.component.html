@@ -1,46 +1,29 @@
 
-<header class="topbar">
+<header class="navbar">
   <a class="brand" href="#">
     <span class="brand-icon">B</span>
-    <span>Bus<span class="brand-accent">Journey</span></span>
+    BusJourney
   </a>
-  <span class="topbar-note">Your journey starts here</span>
+  <span class="nav-caption">Your journey, our priority</span>
 </header>
 
 <main>
   <section class="hero">
-    <div class="hero-copy">
-      <span class="eyebrow">TRAVEL MADE SIMPLE</span>
-      <h1>Every journey<br />begins with a <span>ticket.</span></h1>
-      <p>Find your bus, choose your seat, and travel with ease.</p>
-      <div class="route-note">
-        <span>COCHIN</span>
-        <span class="route-line">⟶</span>
-        <span>CALICUT</span>
-      </div>
-    </div>
+    <div class="hero-content">
+      <span class="eyebrow">TRAVEL SMARTER</span>
+      <h1>Your next journey<br />starts <span>here.</span></h1>
+      <p>Discover comfortable buses for your next trip.</p>
 
-    <div class="search-card">
-      <div class="card-heading">
-        <div>
-          <span class="eyebrow">PLAN YOUR TRIP</span>
-          <h2>Find your bus</h2>
-        </div>
-        <span class="search-icon">⌕</span>
-      </div>
-
-      <form (ngSubmit)="searchBuses()">
-        <div class="city-grid">
+      <form class="search-panel" (ngSubmit)="searchBuses()">
+        <div class="search-fields">
           <div class="field">
             <label for="fromCity">FROM</label>
             <select
               id="fromCity"
               name="fromCity"
               [(ngModel)]="fromCity"
-              (ngModelChange)="onFromCityChange()"
               required>
-              <option value="Cochin">Cochin</option>
-              <option value="Calicut">Calicut</option>
+              <option value="Kozhikode">Kozhikode</option>
             </select>
           </div>
 
@@ -51,97 +34,247 @@
               name="toCity"
               [(ngModel)]="toCity"
               required>
-              <option value="Calicut">Calicut</option>
-              <option value="Cochin">Cochin</option>
+              <option value="Kannur">Kannur</option>
+              <option value="Ernakulam">Ernakulam</option>
             </select>
+          </div>
+
+          <div class="field">
+            <label for="journeyDate">JOURNEY DATE</label>
+            <input
+              id="journeyDate"
+              name="journeyDate"
+              type="date"
+              [(ngModel)]="journeyDate"
+              [min]="today"
+              required />
           </div>
         </div>
 
-        <div class="field date-field">
-          <label for="journeyDate">JOURNEY DATE</label>
-          <input
-            id="journeyDate"
-            name="journeyDate"
-            type="date"
-            [min]="minDate"
-            [(ngModel)]="journeyDate"
-            required />
-        </div>
-
-        <p class="error-message" role="alert" aria-live="polite"
-           [hidden]="!errorMessage">
-          {{ errorMessage }}
-        </p>
-
-        <button class="search-button" type="submit">
-          Search buses <span>→</span>
+        <button
+          class="primary-button search-button"
+          type="submit"
+          [disabled]="loading">
+          {{ loading ? 'Searching buses...' : 'Search buses →' }}
         </button>
       </form>
 
-      <p class="secure-note">Simple booking · Sample schedules</p>
+      <p class="error-message" *ngIf="errorMessage" role="alert">
+        {{ errorMessage }}
+      </p>
+    </div>
+
+    <div class="hero-decoration">
+      <div class="sun"></div>
+      <div class="road">BUS JOURNEY</div>
+      <div class="floating-card">✦ Travel with comfort</div>
     </div>
   </section>
 
   <section class="benefits">
     <div class="benefit">
-      <span class="benefit-icon">↔</span>
-      <div><strong>Easy search</strong><p>Choose your route</p></div>
-    </div>
-    <div class="benefit">
-      <span class="benefit-icon">◷</span>
-      <div><strong>Flexible travel</strong><p>Pick your date</p></div>
-    </div>
-    <div class="benefit">
       <span class="benefit-icon">✓</span>
-      <div><strong>Simple booking</strong><p>Book in a few steps</p></div>
+      <div>
+        <strong>Easy booking</strong>
+        <p>Book your journey in minutes</p>
+      </div>
+    </div>
+
+    <div class="benefit">
+      <span class="benefit-icon">↗</span>
+      <div>
+        <strong>Simple bus search</strong>
+        <p>Compare available fares</p>
+      </div>
+    </div>
+
+    <div class="benefit">
+      <span class="benefit-icon">♡</span>
+      <div>
+        <strong>Travel with comfort</strong>
+        <p>Choose your preferred bus</p>
+      </div>
     </div>
   </section>
 
-  @if (searched) {
-    <section class="results" aria-live="polite">
-      <div class="results-heading">
-        <div>
-          <span class="eyebrow">AVAILABLE OPTIONS</span>
-          <h2>{{ fromCity }} <span>→</span> {{ toCity }}</h2>
-          <p>{{ journeyDate }} · {{ buses.length }} sample buses</p>
-        </div>
+  <section class="results" *ngIf="searched">
+    <div class="results-heading">
+      <div>
+        <span class="eyebrow">
+          {{ fromCity }} → {{ toCity }}
+        </span>
+        <h2>Available buses</h2>
+        <p>Journey date: {{ journeyDate }}</p>
       </div>
 
-      @if (buses.length === 0) {
-        <div class="empty-state">
-          <h3>No buses found</h3>
-          <p>Try another journey date.</p>
+      <span class="result-count">
+        {{ buses.length }} buses found
+      </span>
+    </div>
+
+    <div class="loading-message" *ngIf="loading">
+      Finding buses for your journey...
+    </div>
+
+    <div class="bus-list" *ngIf="!loading && buses.length > 0">
+      <article class="bus-card" *ngFor="let bus of buses">
+        <div class="bus-main">
+          <div class="bus-symbol">🚌</div>
+          <div>
+            <h3>{{ bus.name }}</h3>
+            <p>{{ bus.from }} → {{ bus.to }}</p>
+            <span class="bus-type">{{ bus.id }}</span>
+          </div>
         </div>
-      }
 
-      @for (bus of buses; track bus.id) {
-        <article class="bus-card">
-          <div class="bus-main">
-            <div class="operator-icon">{{ bus.operator.charAt(0) }}</div>
-            <div>
-              <h3>{{ bus.operator }}</h3>
-              <p>{{ bus.busName }}</p>
-            </div>
+        <div class="route-info">
+          <div>
+            <strong>{{ bus.time }}</strong>
+            <small>{{ bus.from }}</small>
           </div>
+          <span class="route-line">→</span>
+          <div>
+            <strong>Destination</strong>
+            <small>{{ bus.to }}</small>
+          </div>
+        </div>
 
-          <div class="journey-times">
-            <div><strong>{{ bus.departure }}</strong><span>{{ fromCity }}</span></div>
-            <div class="duration"><span>{{ bus.duration }}</span><span class="duration-line"></span></div>
-            <div><strong>{{ bus.arrival }}</strong><span>{{ toCity }}</span></div>
-          </div>
+        <div class="bus-price">
+          <strong>₹{{ bus.fare }}</strong>
+          <small>per passenger</small>
 
-          <div class="bus-price">
-            <strong>₹{{ bus.price }}</strong>
-            <span>{{ bus.seats }} seats available</span>
-            <button type="button" (click)="bookBus(bus)">Book Now</button>
-          </div>
-        </article>
-      }
-    </section>
-  }
+          <button
+            class="primary-button"
+            type="button"
+            (click)="bookBus(bus)">
+            Book now
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="!loading && buses.length === 0 && !errorMessage">
+      <h3>No buses found</h3>
+      <p>Please try another route.</p>
+    </div>
+  </section>
+
+  <section class="results booking-panel" *ngIf="selectedBus">
+    <div class="results-heading">
+      <div>
+        <span class="eyebrow">COMPLETE YOUR JOURNEY</span>
+        <h2>Passenger details</h2>
+        <p>{{ selectedBus.name }}</p>
+        <p>
+          {{ selectedBus.from }} → {{ selectedBus.to }}
+          · {{ journeyDate }}
+        </p>
+      </div>
+    </div>
+
+    <form
+      *ngIf="!bookingResult"
+      class="booking-form"
+      (ngSubmit)="confirmBooking()">
+
+      <div class="field">
+        <label for="passengerName">PASSENGER NAME</label>
+        <input
+          id="passengerName"
+          name="passengerName"
+          type="text"
+          [(ngModel)]="passengerName"
+          required
+          minlength="2"
+          maxlength="100"
+          placeholder="Enter full name" />
+      </div>
+
+      <div class="field">
+        <label for="phone">PHONE NUMBER</label>
+        <input
+          id="phone"
+          name="phone"
+          type="tel"
+          [(ngModel)]="phone"
+          required
+          pattern="[0-9]{10}"
+          maxlength="10"
+          placeholder="10-digit phone number" />
+      </div>
+
+      <div class="field">
+        <label for="passengers">NUMBER OF PASSENGERS</label>
+        <input
+          id="passengers"
+          name="passengers"
+          type="number"
+          [(ngModel)]="passengers"
+          required
+          min="1"
+          max="6" />
+      </div>
+
+      <h3 class="total-fare">
+        Total fare: ₹{{ selectedBus.fare * passengers }}
+      </h3>
+
+      <p class="error-message" *ngIf="bookingError" role="alert">
+        {{ bookingError }}
+      </p>
+
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="bookingLoading">
+        {{ bookingLoading ? 'Processing...' : 'Confirm booking' }}
+      </button>
+
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="cancelBooking()">
+        Cancel
+      </button>
+    </form>
+
+    <div class="success-panel" *ngIf="bookingResult">
+      <span class="success-icon">✓</span>
+      <h2>Booking successful!</h2>
+
+      <p>Your booking reference</p>
+      <h3 class="reference">{{ bookingResult.reference }}</h3>
+
+      <p>Passenger: {{ bookingResult.passengerName }}</p>
+      <p>Phone: {{ bookingResult.contact }}</p>
+      <p>
+        Route: {{ bookingResult.from }} → {{ bookingResult.to }}
+      </p>
+      <p>Bus: {{ bookingResult.busName }}</p>
+      <p>Journey date: {{ bookingResult.journeyDate }}</p>
+      <p>Passengers: {{ bookingResult.passengers }}</p>
+
+      <h3>Total fare: ₹{{ bookingResult.totalFare }}</h3>
+
+      <p class="hint">Please save your booking reference.</p>
+
+      <button
+        class="primary-button"
+        type="button"
+        (click)="finishBooking()">
+        Back to buses
+      </button>
+    </div>
+  </section>
 </main>
 
 <footer>
-  <span>BusJourney</span>
-  <span>Intercity Bus Booking · Internship Project</span>
+  <a class="brand" href="#">
+    <span class="brand-icon">B</span>
+    BusJourney
+  </a>
+  <p>Making every journey simple, safe and comfortable.</p>
+  <small>© 2026 BusJourney · Internship Project</small>
 </footer>
