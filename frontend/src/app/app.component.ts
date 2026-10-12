@@ -40,7 +40,7 @@ interface BookingResponse {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  private readonly apiUrl = 'http://localhost:3000/api';
+private readonly apiUrl = 'http://13.53.138.152:3000/api';
 
   fromCity = 'Kozhikode';
   toCity = 'Kannur';

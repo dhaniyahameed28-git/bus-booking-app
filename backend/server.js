@@ -1,11 +1,10 @@
 
-require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 
-const Booking = require('./models/Booking');
+const Booking = require('./models/booking');
 
 const app = express();
 
@@ -13,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Sample bus data
+// Sample bus data: 6 buses
 const buses = [
   {
     id: 'BUS001',
@@ -38,18 +37,32 @@ const buses = [
     to: 'Ernakulam',
     fare: 600,
     time: '07:00 AM'
+  },
+  {
+    id: 'BUS004',
+    name: 'Malabar Express',
+    from: 'Kozhikode',
+    to: 'Kannur',
+    fare: 400,
+    time: '10:00 AM'
+  },
+  {
+    id: 'BUS005',
+    name: 'Green Line Travels',
+    from: 'Kozhikode',
+    to: 'Kannur',
+    fare: 550,
+    time: '01:30 PM'
+  },
+  {
+    id: 'BUS006',
+    name: 'Kerala Super Fast',
+    from: 'Kozhikode',
+    to: 'Kannur',
+    fare: 480,
+    time: '05:00 PM'
   }
 ];
-
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB connected successfully');
-  })
-  .catch((err) => {
-    console.error('MongoDB ERROR:', err.message);
-  });
 
 // Home route
 app.get('/', (req, res) => {
@@ -64,13 +77,13 @@ app.get('/api/buses', (req, res) => {
 
   if (from) {
     filteredBuses = filteredBuses.filter((bus) =>
-      bus.from.toLowerCase().includes(from.trim().toLowerCase())
+      bus.from.toLowerCase().includes(String(from).trim().toLowerCase())
     );
   }
 
   if (to) {
     filteredBuses = filteredBuses.filter((bus) =>
-      bus.to.toLowerCase().includes(to.trim().toLowerCase())
+      bus.to.toLowerCase().includes(String(to).trim().toLowerCase())
     );
   }
 
@@ -81,11 +94,9 @@ app.get('/api/buses', (req, res) => {
 app.get('/api/bookings', async (req, res) => {
   try {
     const bookings = await Booking.find().sort({ createdAt: -1 });
-
     res.status(200).json(bookings);
   } catch (err) {
     console.error('Get bookings ERROR:', err.message);
-
     res.status(500).json({
       success: false,
       message: 'Failed to fetch bookings.'
@@ -113,7 +124,6 @@ app.get('/api/bookings/:reference', async (req, res) => {
     });
   } catch (err) {
     console.error('Get booking ERROR:', err.message);
-
     res.status(500).json({
       success: false,
       message: 'Failed to fetch booking.'
@@ -132,7 +142,6 @@ app.post('/api/bookings', async (req, res) => {
       passengers
     } = req.body;
 
-    // Validate required fields
     if (
       typeof passengerName !== 'string' ||
       !passengerName.trim() ||
@@ -147,11 +156,10 @@ app.post('/api/bookings', async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide valid passenger, contact, bus, date, and passenger-count details.'
+        message: 'Please provide valid booking details.'
       });
     }
 
-    // Validate date format and calendar date
     if (!/^\d{4}-\d{2}-\d{2}$/.test(journeyDate)) {
       return res.status(400).json({
         success: false,
@@ -171,7 +179,6 @@ app.post('/api/bookings', async (req, res) => {
       });
     }
 
-    // Find selected bus
     const bus = buses.find((item) => item.id === busId.trim());
 
     if (!bus) {
@@ -181,15 +188,12 @@ app.post('/api/bookings', async (req, res) => {
       });
     }
 
-    // Generate booking reference
     const reference = `BK${Date.now()}${Math.floor(
       1000 + Math.random() * 9000
     )}`;
 
-    // Calculate fare on the server
     const totalFare = bus.fare * passengers;
 
-    // Save booking to MongoDB
     const booking = await Booking.create({
       reference,
       passengerName: passengerName.trim(),
@@ -212,7 +216,6 @@ app.post('/api/bookings', async (req, res) => {
     });
   } catch (err) {
     console.error('Create booking ERROR:', err.message);
-
     return res.status(500).json({
       success: false,
       message: 'Failed to create booking.'
@@ -240,7 +243,6 @@ app.delete('/api/bookings/:reference', async (req, res) => {
     });
   } catch (err) {
     console.error('Delete booking ERROR:', err.message);
-
     res.status(500).json({
       success: false,
       message: 'Failed to delete booking.'
@@ -261,9 +263,14 @@ const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   try {
-    await mongoose.connection.asPromise();
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not configured');
+    }
 
-    app.listen(PORT, () => {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected successfully');
+
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (err) {
